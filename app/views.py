@@ -10,6 +10,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm
 from app.models import UserProfile
+from werkzeug.security import check_password_hash
 
 
 ###
@@ -32,6 +33,17 @@ def about():
 def login():
     form = LoginForm()
     if request.method == "POST":
+        if form.validate_on_submit():
+            username = form.username.data
+            password = form.password.data
+            user = UserProfile.query.filter_by(username = username).first()
+            if user is not None and check_password_hash(user.password, password):
+                login_user(user)
+                flash("You have been logged in!")
+                return redirect(url_for('/secure-page'))
+            else:
+                flash("Credentials does not match")
+    return render_template('login.html', form=form)
         # change this to actually validate the entire form submission
         # and not just one field
         if form.username.data:
