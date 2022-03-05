@@ -7,10 +7,12 @@ This file creates your application.
 
 from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, current_user, login_required
+from flask_login import login_user, logout_user, current_user
+from flask_login import login_required
 from app.forms import LoginForm
 from app.models import UserProfile
 from werkzeug.security import check_password_hash
+
 
 
 ###
@@ -37,34 +39,20 @@ def login():
             username = form.username.data
             password = form.password.data
             user = UserProfile.query.filter_by(username = username).first()
-            if user is not None and check_password_hash(user.password, password):
-                login_user(user)
-                flash("You have been logged in!")
-                return redirect(url_for('/secure-page'))
-            else:
-                flash("Credentials does not match")
-    return render_template('login.html', form=form)
-        # change this to actually validate the entire form submission
-        # and not just one field
-        if form.username.data:
-            # Get the username and password values from the form.
-
-            # using your model, query database for a user based on the username
-            # and password submitted. Remember you need to compare the password hash.
-            # You will need to import the appropriate function to do so.
-            # Then store the result of that query to a `user` variable so it can be
-            # passed to the login_user() method below.
-
-            # get user id, load into session
+        if user is not None and check_password_hash(user.password, password):
             login_user(user)
+            flash("You have been logged in!", 'sucess')
+            return redirect(url_for('secure_page'))
+        else:
+            flash("Credentials does not match", 'danger')
+    return render_template('login.html', form=form)
 
-            # remember to flash a message to the user
-            return redirect(url_for("home"))  # they should be redirected to a secure-page route instead
-    return render_template("login.html", form=form)
-
-
+@app.route("/secure-page")
+@login_required
+def secure_page():
+    return render_template('secure_page.html')
 # user_loader callback. This callback is used to reload the user object from
-# the user ID stored in the session
+# the user ID stored in the sessio
 @login_manager.user_loader
 def load_user(id):
     return UserProfile.query.get(int(id))
