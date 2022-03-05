@@ -8,7 +8,7 @@ This file creates your application.
 from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, current_user
-from flask_login import login_required
+from flask_login import login_required, LoginManager
 from app.forms import LoginForm
 from app.models import UserProfile
 from werkzeug.security import check_password_hash
@@ -56,6 +56,13 @@ def secure_page():
 @login_manager.user_loader
 def load_user(id):
     return UserProfile.query.get(int(id))
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("You have logged out!", 'success')
+    return redirect(url_for('home'))
 
 ###
 # The functions below should be applicable to all Flask apps.
